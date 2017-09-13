@@ -1,0 +1,14 @@
+{
+  "name": "macnoisebutton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Justin <justin@fiddlyio.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@google-cloud/functions-emulator": "^1.0.0-alpha.25"
+  }
+}
