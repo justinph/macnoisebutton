@@ -10,5 +10,8 @@
   "license": "ISC",
   "devDependencies": {
     "@google-cloud/functions-emulator": "^1.0.0-alpha.25"
+  },
+  "dependencies": {
+    "twilio": "^3.6.7"
   }
 }
