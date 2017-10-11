@@ -118,18 +118,6 @@ const postNewComplaint = (authData) => {
   });
 };
 
-
-// const submitComplaint = () => {
-//   loginAndGetApiToken()
-//     .then((responseData) => {
-//       return postNewComplaint(responseData);
-//     });
-// };
-
-
-// const phone = new twilio(secrets.TWILIO_SID, secrets.TWILIO_AUTH_TOKEN);
-
-
 const MessagingResponse = twilio.twiml.MessagingResponse;
 
 
@@ -174,5 +162,46 @@ exports.reply = (req, res) => {
     });
 
 };
+
+
+function getPhoneNumber (req) {
+  if (req.query.number) {
+    return req.query.number;
+  } else if (req.query.n) {
+    return req.query.n;
+  }
+}
+
+function getMessage (req) {
+  if (req.query.msg) {
+    return req.query.msg;
+  } else if (req.query.message) {
+    return req.query.message;
+  }
+}
+
+exports.messenger = (req, res) => {
+  let number = getPhoneNumber(req);
+  let message = getMessage(req);
+
+  if (number && message) {
+    return res
+      .status(200)
+      .json({
+        number,
+        message,
+      })
+      .end();
+  }
+  console.error('number:', number, 'message', message);
+  return res
+    .status(500)
+    .json({
+        error: !number ? 'missingNumber' : (!message ? 'missingMessage' : 'otherError')
+      })
+    .end();
+};
+
+
 
 
