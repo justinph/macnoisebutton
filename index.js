@@ -8,6 +8,10 @@ const secrets = require('./secrets.json');
 const projectId = 'macnoise-179703';
 const region = 'us-central1';
 
+
+// for backwards compatability with old working function
+exports.reply = require('./reply').reply;
+
 console.log('projectId', projectId);
 
 const datastore = new Datastore({
