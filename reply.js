@@ -163,7 +163,7 @@ exports.reply = (req, res) => {
       if (macResp.message) {
         response.message(macResp.message);
       } else {
-        response.message(JSON.stringify(macResp));
+        response.message(JSON.parse(macResp).message);
       }
 
       // Send the response
