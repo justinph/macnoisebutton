@@ -43,13 +43,6 @@ const COMPLAINT_POST =  {
 };
 
 
-const getUserInfo = (asString=false) => {
-  if (asString) {
-    return JSON.stringify(secrets.MAC);
-  }
-  return secrets.MAC;
-};
-
 
 const loginAndGetApiToken = (email, password) => {
   const reqOpts = AUTH_POST;
@@ -58,7 +51,7 @@ const loginAndGetApiToken = (email, password) => {
     password
   });
 
-  reqOpts.headers['Content-Length'] = Buffer.byteLength(userObj); //getUserInfo(true)
+  reqOpts.headers['Content-Length'] = Buffer.byteLength(userObj);
 
   return new Promise((resolve, reject) => {
     const req = https.request(reqOpts, (res) => {
@@ -74,53 +67,6 @@ const loginAndGetApiToken = (email, password) => {
   .then((body) => {
     console.log('auth resp', body);
     return JSON.parse(body);
-  });
-};
-
-
-
-const postNewComplaint = (authData) => {
-
-  const postData = JSON.stringify({
-    early_late: false,
-    excessive_noise: true,
-    frequency: true,
-    ground_noise: false,
-    helicopter: false,
-    low: true,
-    run_up: false,
-    structural_disturbance: false,
-    other: false,
-    id_locations: authData.locations[0].guid,
-    complaint_iso8601: new Date().toJSON(),
-    airport: 'MSP',
-    ad_flag: 'D',
-    opnum: null,
-    runway: null
-  });
-
-  const reqOpts = COMPLAINT_POST; // TODO: clone this in future
-  reqOpts.headers['Content-Length'] = Buffer.byteLength(postData);
-  reqOpts.headers['api-token'] = authData['api-token'];
-  // a little sneak
-  reqOpts.headers.origin = 'https://www.macenvironment.org';
-  reqOpts.headers.referer = 'https://www.macenvironment.org/customers/';
-
-  //console.log(postData, reqOpts);
-
-  return new Promise((resolve, reject) => {
-    const req = https.request(reqOpts, (res) => {
-      res.setEncoding('utf8');
-      const body = [];
-      res.on('data', (chunk) => body.push(chunk));
-      res.on('end', () => resolve(body.join('')));
-    });
-    req.on('error', (err) => reject(err));
-    req.write(postData);
-    req.end();
-  })
-  .then((body) => {
-    return body;
   });
 };
 
@@ -155,47 +101,47 @@ const postNewComplaint2 = (macAuthData, complaintObj) => {
 const MessagingResponse = twilio.twiml.MessagingResponse;
 
 
-exports.reply = (req, res) => {
-  let isValid = true;
+// exports.reply = (req, res) => {
+//   let isValid = true;
 
-  isValid = twilio.validateExpressRequest(
-    req,
-    secrets.TWILIO_AUTH_TOKEN,
-    {url: `https://${region}-${projectId}.cloudfunctions.net/reply`}
-  );
+//   isValid = twilio.validateExpressRequest(
+//     req,
+//     secrets.TWILIO_AUTH_TOKEN,
+//     {url: `https://${region}-${projectId}.cloudfunctions.net/reply`}
+//   );
 
-  // Halt early if the request was not sent from Twilio
-  if (!isValid) {
-    res
-      .type('text/plain')
-      .status(403)
-      .send('Twilio Request Validation Failed.')
-      .end();
-    return;
-  }
+//   // Halt early if the request was not sent from Twilio
+//   if (!isValid) {
+//     res
+//       .type('text/plain')
+//       .status(403)
+//       .send('Twilio Request Validation Failed.')
+//       .end();
+//     return;
+//   }
 
-  return loginAndGetApiToken(secrets.MAC.email, secrets.MAC.password)
-    .then((responseData) => {
-      return postNewComplaint(responseData);
-    })
-    .then((macResp) => {
-      // Prepare a response to the SMS message
-      const response = new MessagingResponse();
+//   return loginAndGetApiToken(secrets.MAC.email, secrets.MAC.password)
+//     .then((responseData) => {
+//       return postNewComplaint(responseData);
+//     })
+//     .then((macResp) => {
+//       // Prepare a response to the SMS message
+//       const response = new MessagingResponse();
 
-      if (macResp.message) {
-        response.message(macResp.message);
-      } else {
-        response.message(JSON.parse(macResp).message);
-      }
+//       if (macResp.message) {
+//         response.message(macResp.message);
+//       } else {
+//         response.message(JSON.parse(macResp).message);
+//       }
 
-      // Send the response
-      return res
-        .status(200)
-        .type('text/xml')
-        .end(response);
-    });
+//       // Send the response
+//       return res
+//         .status(200)
+//         .type('text/xml')
+//         .end(response);
+//     });
 
-};
+// };
 
 
 function getPhoneNumber (req) {
