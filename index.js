@@ -176,7 +176,7 @@ exports.reply = (req, res) => {
 
   return loginAndGetApiToken({
       email: secrets.MAC.email,
-      password: secrets.mac.password
+      password: secrets.MAC.password
     })
     .then((responseData) => {
       return postNewComplaint(responseData);
