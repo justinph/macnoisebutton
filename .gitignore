@@ -2,3 +2,4 @@
 node_modules/
 logs/
 secrets.json
+google-creds.json
