@@ -1,48 +1,33 @@
-/**
- * Cloud Function.
- *
- * @param {object} event The Cloud Functions event.
- * @param {function} callback The callback function.
- */
-// exports.helloWorld = function helloWorld (event, callback) {
-//   console.log(`My Cloud Function: ${event.data.message}`);
-//   callback();
-// };
-//
-'use strict';
-
-const fs = require('fs');
 const https = require('https');
-const twilio = require('twilio');
+const Twilio = require('twilio');
 
-const secrets = require('./secrets.json');
-
-const projectId = process.env.GCLOUD_PROJECT;
-const region = 'us-central1';
+const secrets = {
+  MAC: {
+    email: 'justin@fiddlyio.com',
+    password: '2Pm79F6M28996p6',
+  }
+};
 
 
 const AUTH_POST =  {
-  host: 'www.macenvironment.org',
+  host: 'api.macnoms.com',
   port: '443',
-  path: '/api/v1/authenticate/customers',
+  path: '/_api/v1/authenticate/customers',
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'x-requested-with': 'XMLHttpRequest'
   }
 };
 
 const COMPLAINT_POST =  {
-  host: 'www.macenvironment.org',
+  host: 'api.macnoms.com',
   port: '443',
-  path: '/api/v1/customers/complaints',
+  path: '/_api/v1/customers/complaints',
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'x-requested-with': 'XMLHttpRequest'
   }
 };
-
 
 const getUserInfo = (asString=false) => {
   if (asString) {
@@ -100,7 +85,6 @@ const postNewComplaint = (authData) => {
   reqOpts.headers.origin = 'https://www.macenvironment.org';
   reqOpts.headers.referer = 'https://www.macenvironment.org/customers/';
 
-  //console.log(postData, reqOpts);
 
   return new Promise((resolve, reject) => {
     const req = https.request(reqOpts, (res) => {
@@ -118,61 +102,29 @@ const postNewComplaint = (authData) => {
   });
 };
 
-
-// const submitComplaint = () => {
-//   loginAndGetApiToken()
-//     .then((responseData) => {
-//       return postNewComplaint(responseData);
-//     });
-// };
+exports.handler = function(context, event, callback) {
 
 
-// const phone = new twilio(secrets.TWILIO_SID, secrets.TWILIO_AUTH_TOKEN);
-
-
-const MessagingResponse = twilio.twiml.MessagingResponse;
-
-
-exports.reply = (req, res) => {
-  let isValid = true;
-
-  isValid = twilio.validateExpressRequest(
-    req,
-    secrets.TWILIO_AUTH_TOKEN,
-    {url: `https://${region}-${projectId}.cloudfunctions.net/reply`}
-  );
-
-  // Halt early if the request was not sent from Twilio
-  if (!isValid) {
-    res
-      .type('text/plain')
-      .status(403)
-      .send('Twilio Request Validation Failed.')
-      .end();
-    return;
+  if (event.From.indexOf('6123869022') === -1 ){
+    console.log('unatthorized attempt from', event.From);
+    process.exit();
   }
 
-  return loginAndGetApiToken()
-    .then((responseData) => {
-      return postNewComplaint(responseData);
-    })
-    .then((macResp) => {
-      // Prepare a response to the SMS message
-      const response = new MessagingResponse();
-
-      if (macResp.message) {
-        response.message(macResp.message);
-      } else {
-        response.message(JSON.parse(macResp).message);
-      }
-
-      // Send the response
-      return res
-        .status(200)
-        .type('text/xml')
-        .end(response.toString());
-    });
-
+  loginAndGetApiToken()
+  .then((responseData) => {
+    return postNewComplaint(responseData);
+  })
+  .then((macResp) => {
+    console.log('resp', macResp);
+    return JSON.parse(macResp).message;
+  })
+  .then(responseTxt => {
+    let twiml = new Twilio.twiml.MessagingResponse()
+    twiml.message(responseTxt);
+    return twiml;
+  })
+  .then(twiml => {
+    callback(null, twiml);
+  })
+  .catch(err => callback(err));
 };
-
-
