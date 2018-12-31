@@ -3,8 +3,8 @@ const Twilio = require('twilio');
 
 const secrets = {
   MAC: {
-    email: 'justin@fiddlyio.com',
-    password: '2Pm79F6M28996p6',
+    email: 'xxxxx',
+    password: 'xxxxx',
   }
 };
 
