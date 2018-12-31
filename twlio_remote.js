@@ -5,7 +5,8 @@ const secrets = {
   MAC: {
     email: 'xxxxx',
     password: 'xxxxx',
-  }
+  },
+  ALLOWED_PHONE: 'xxxx'  //e.g. 6125551212
 };
 
 
@@ -105,7 +106,7 @@ const postNewComplaint = (authData) => {
 exports.handler = function(context, event, callback) {
 
 
-  if (event.From.indexOf('6123869022') === -1 ){
+  if (event.From.indexOf(secrets.ALLOWED_PHONE) === -1 ){
     console.log('unatthorized attempt from', event.From);
     process.exit();
   }
